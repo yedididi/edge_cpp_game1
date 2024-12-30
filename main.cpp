@@ -262,15 +262,15 @@ extern "C" void Main()
 				TIM4_expired = 0;
 			}
 
-			// if(game_over)
-			// {
-			// 	TIM4_Repeat_Interrupt_Enable(0, 0);
-			// 	Uart_Printf("Game Over, Please press any key to continue.\n");
-			// 	Jog_Wait_Key_Pressed();
-			// 	Jog_Wait_Key_Released();
-			// 	Uart_Printf("Game Start\n");
-			// 	break;
-			// }
+			if(game_over)
+			{
+				TIM4_Repeat_Interrupt_Enable(0, 0);
+				Uart_Printf("Game Over, Please press any key to continue.\n");
+				Jog_Wait_Key_Pressed();
+				Jog_Wait_Key_Released();
+				Uart_Printf("Game Start\n");
+				break;
+			}
 		}
 	}
 }
