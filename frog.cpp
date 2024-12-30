@@ -1,14 +1,14 @@
 #include "defined.h"
 #include "frog.h"
 
-frog::frog(int x, int y, int w, int h, int ci, int dir)
+frog::frog(int x, int y, int w, int h, int ci, int dir) : object(x, y, w, h, ci, dir)
 {
-    this->x = x;
-    this->y = y;
-    this->w = w;
-    this->h = h;
-    this->ci = ci;
-    this->dir = dir;
+    // this->x = x;
+    // this->y = y;
+    // this->w = w;
+    // this->h = h;
+    // this->ci = ci;
+    // this->dir = dir;
 }
 
 void frog::Frog_Move(int k)

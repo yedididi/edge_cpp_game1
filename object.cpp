@@ -17,7 +17,6 @@ object::object(int x, int y, int w, int h, int ci, int dir)
     this->dir = dir;
 }
 
-
 int object::getX()
 {
     return (this->x);

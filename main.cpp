@@ -6,19 +6,26 @@
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 
-static int Check_Collision(frog player, car car1)
+static int Check_Collision(frog *player, car cars[5])
 {
 	int col = 0;
 
-	if((car1.getX() >= player.getX()) && ((player.getX() + FROG_STEP) >= car1.getX())) 
-		col |= 1<<0;
-	else if((car1.getX() < player.getX()) && ((car1.getX() + CAR_STEP) >= player.getX())) 
-		col |= 1<<0;
-	
-	if((car1.getY() >= player.getY()) && ((player.getY() + FROG_STEP) >= car1.getY())) 
-		col |= 1<<1;
-	else if((car1.getY() < player.getY()) && ((car1.getY() + CAR_STEP) >= player.getY())) 
-		col |= 1<<1;
+	for (int i = 0; i < score + 1; i++)
+	{
+		col = 0;
+		if ((cars[i].getX() >= player->getX()) && ((player->getX() + FROG_STEP) >= cars[i].getX())) 
+			col |= 1<<0; //col = col | 1
+		else if ((cars[i].getX() < player->getX()) && ((cars[i].getX() + CAR_STEP) >= player->getX())) 
+			col |= 1<<0; //col = col | 1
+		
+		if ((cars[i].getY() >= player->getY()) && ((player->getY() + FROG_STEP) >= cars[i].getY())) 
+			col |= 1<<1; //col = col | 10
+		else if ((cars[i].getY() < player->getY()) && ((cars[i].getY() + CAR_STEP) >= player->getY())) 
+			col |= 1<<1; //col = col | 10
+		
+		if (col == 3)
+			break;
+	}
 
 	if(col == 3)
 	{
@@ -26,15 +33,15 @@ static int Check_Collision(frog player, car car1)
 		return GAME_OVER;
 	}
 
-	if((player.getDir() == SCHOOL) && (player.getY() == Y_MIN)) 
+	if((player->getDir() == SCHOOL) && (player->getY() == Y_MIN)) 
 	{
 		Uart_Printf("SCHOOL\n");
-		player.setDir(HOME);
+		player->setDir(HOME);
 	}
 
-	if((player.getDir() == HOME) && (player.getY() == LCDH - player.getH()))
+	if((player->getDir() == HOME) && (player->getY() == LCDH - player->getH()))
 	{
-		player.setDir(SCHOOL);
+		player->setDir(SCHOOL);
 		score++;
 		Uart_Printf("HOME, %d\n", score);
 	}
@@ -84,22 +91,28 @@ extern "C" void Main()
 	for(;;)
 	{
 		frog player(150, 220, FROG_SIZE_X, FROG_SIZE_Y, FROG_COLOR, SCHOOL);
-		car car1(0, 110, CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT);
-		Game_Init(player, car1);
+		car car_array[5] = {
+			car(0, 110, CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
+			car(0, 100, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(0, 120, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(0, 130, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(0, 140, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
+		}; //car 위치 조정 필요!!
+		Game_Init(player, car_array[0]);
 		TIM4_Repeat_Interrupt_Enable(1, TIMER_PERIOD*10);
 
 		for(;;)
 		{
 			int game_over = 0;
 			
-			if(Jog_key_in) 
+			if(Jog_key_in)
 			{
 				Uart_Printf("KEY\n");
 				player.setCi(BACK_COLOR);
 				player.Draw_Object();
 
 				player.Frog_Move(Jog_key);
-				game_over = Check_Collision(player, car1);
+				game_over = Check_Collision(&player, car_array);
 
 				player.setCi(FROG_COLOR);
 				player.Draw_Object();
@@ -108,16 +121,21 @@ extern "C" void Main()
 
 			if(TIM4_expired) 
 			{
-				car1.setCi(BACK_COLOR);
-				car1.Draw_Object();
+				for (int i = 0; i < score + 1; i++)
+				{
+					car_array[i].setCi(BACK_COLOR);
+					car_array[i].Draw_Object();
 
-				car1.Car_Move();
-				game_over = Check_Collision(player, car1);
+					car_array[i].Car_Move();
 
-				car1.setCi(CAR_COLOR);
-				car1.Draw_Object();
-				TIM4_expired = 0;
+					car_array[i].setCi(CAR_COLOR);
+					car_array[i].Draw_Object();
+					TIM4_expired = 0;
+				}				
+				game_over = Check_Collision(&player, car_array);
+
 			}
+			
 
 			if(game_over)
 			{
