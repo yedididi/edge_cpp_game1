@@ -88,7 +88,12 @@ class car
 			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
 		}
 
-		
+		void Car_Move(void)
+		{
+			this->x += CAR_STEP * this->dir;
+			if((this->x + this->w >= X_MAX) || (this->x <= X_MIN)) 
+				this->dir = -this->dir;
+		}
 };
 
 // typedef struct
@@ -244,15 +249,18 @@ extern "C" void Main()
 				Jog_key_in = 0;				
 			}
 
-			// if(TIM4_expired) 
-			// {
-			// 	car.ci = BACK_COLOR;
-			// 	Draw_Object(&car);
-			// 	game_over = Car_Move();
-			// 	car.ci = CAR_COLOR;
-			// 	Draw_Object(&car);
-			// 	TIM4_expired = 0;
-			// }
+			if(TIM4_expired) 
+			{
+				car1.ci = BACK_COLOR;
+				car1.Draw_Object();
+
+				car1.Car_Move();
+				game_over = Check_Collision(player, car1);
+
+				car1.ci = CAR_COLOR;
+				car1.Draw_Object();
+				TIM4_expired = 0;
+			}
 
 			// if(game_over)
 			// {
