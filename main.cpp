@@ -1,111 +1,77 @@
 #include "device_driver.h"
-
-#define LCDW			(320)
-#define LCDH			(240)
-#define X_MIN	 		(0)
-#define X_MAX	 		(LCDW - 1)
-#define Y_MIN	 		(0)
-#define Y_MAX	 		(LCDH - 1)
-
-#define TIMER_PERIOD	(10)
-#define RIGHT			(1)
-#define LEFT			(-1)
-#define HOME			(0)
-#define SCHOOL			(1)
-
-#define CAR_STEP		(10)
-#define CAR_SIZE_X		(20)
-#define CAR_SIZE_Y		(20)
-#define FROG_STEP		(10)
-#define FROG_SIZE_X		(20)
-#define FROG_SIZE_Y		(20)
-
-#define BACK_COLOR		(5)
-#define CAR_COLOR		(0)
-#define FROG_COLOR		(1)
-
-#define GAME_OVER		(1)
+#include "frog.h"
+#include "car.h"
+#include "defined.h"
 
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 
-class frog
-{
-	public:
-		int x,y;
-		int w,h;
-		int ci;
-		int dir;
-
-		frog(int x, int y, int w, int h, int ci, int dir)
-		{
-			this->x = x;
-			this->y = y;
-			this->w = w;
-			this->h = h;
-			this->ci = ci;
-			this->dir = dir;
-		}
-
-		void Draw_Object()
-		{
-			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
-		}
-
-		void Frog_Move(int k)
-		{
-			if (k == 0 && this->y > Y_MIN)
-				this->y -= FROG_STEP;
-			else if (k == 1 && (this->y + this->h < Y_MAX))
-				this->y += FROG_STEP;
-			else if (k == 2 && (this->x > X_MIN))
-				this->x -= FROG_STEP;
-			else if (k == 3 && (this->x + this->w < X_MAX))	
-				this->x += FROG_STEP;
-		}
-};
-
-class car
-{
-	public:
-		int x,y;
-		int w,h;
-		int ci;
-		int dir;
-
-		car(int x, int y, int w, int h, int ci, int dir)
-		{
-			this->x = x;
-			this->y = y;
-			this->w = w;
-			this->h = h;
-			this->ci = ci;
-			this->dir = dir;
-		}
-
-		void Draw_Object()
-		{
-			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
-		}
-
-		void Car_Move(void)
-		{
-			this->x += CAR_STEP * this->dir;
-			if((this->x + this->w >= X_MAX) || (this->x <= X_MIN)) 
-				this->dir = -this->dir;
-		}
-};
-
-// typedef struct
+// class frog
 // {
-// 	int x,y;
-// 	int w,h;
-// 	int ci;
-// 	int dir;
-// }QUERY_DRAW;
+// 	public:
+// 		int x,y;
+// 		int w,h;
+// 		int ci;
+// 		int dir;
 
-// static QUERY_DRAW car;
-// static QUERY_DRAW frog;
+// 		frog(int x, int y, int w, int h, int ci, int dir)
+// 		{
+// 			this->x = x;
+// 			this->y = y;
+// 			this->w = w;
+// 			this->h = h;
+// 			this->ci = ci;
+// 			this->dir = dir;
+// 		}
+
+// 		void Draw_Object()
+// 		{
+// 			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
+// 		}
+
+// 		void Frog_Move(int k)
+// 		{
+// 			if (k == 0 && this->y > Y_MIN)
+// 				this->y -= FROG_STEP;
+// 			else if (k == 1 && (this->y + this->h < Y_MAX))
+// 				this->y += FROG_STEP;
+// 			else if (k == 2 && (this->x > X_MIN))
+// 				this->x -= FROG_STEP;
+// 			else if (k == 3 && (this->x + this->w < X_MAX))	
+// 				this->x += FROG_STEP;
+// 		}
+// };
+
+// class car
+// {
+// 	public:
+// 		int x,y;
+// 		int w,h;
+// 		int ci;
+// 		int dir;
+
+// 		car(int x, int y, int w, int h, int ci, int dir)
+// 		{
+// 			this->x = x;
+// 			this->y = y;
+// 			this->w = w;
+// 			this->h = h;
+// 			this->ci = ci;
+// 			this->dir = dir;
+// 		}
+
+// 		void Draw_Object()
+// 		{
+// 			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
+// 		}
+
+// 		void Car_Move(void)
+// 		{
+// 			this->x += CAR_STEP * this->dir;
+// 			if((this->x + this->w >= X_MAX) || (this->x <= X_MIN)) 
+// 				this->dir = -this->dir;
+// 		}
+// };
 
 static int Check_Collision(frog player, car car1)
 {
@@ -143,55 +109,13 @@ static int Check_Collision(frog player, car car1)
 	return 0;
 }
 
-// static int Car_Move(void)
-// {
-// 	car.x += CAR_STEP * car.dir;
-// 	if((car.x + car.w >= X_MAX) || (car.x <= X_MIN)) car.dir = -car.dir;
-// 	return Check_Collision();
-// }
-
-// static void k0(void)
-// {
-// 	if(frog.y > Y_MIN) frog.y -= FROG_STEP;
-// }
-
-// static void k1(void)
-// {
-// 	if(frog.y + frog.h < Y_MAX) frog.y += FROG_STEP;
-// }
-
-// static void k2(void)
-// {
-// 	if(frog.x > X_MIN) frog.x -= FROG_STEP;
-// }
-
-// static void k3(void)
-// {
-// 	if(frog.x + frog.w < X_MAX) frog.x += FROG_STEP;
-// }
-
-// static int Frog_Move(int k)
-// {
-// 	// UP(0), DOWN(1), LEFT(2), RIGHT(3)
-// 	static void (*key_func[])(void) = {k0, k1, k2, k3};
-// 	if(k <= 3) key_func[k]();
-// 	return Check_Collision();
-// }
-
 static void Game_Init(frog player, car car1)
 {
 	score = 0;
 	Lcd_Clr_Screen();
-	// frog.x = 150; frog.y = 220; frog.w = FROG_SIZE_X; frog.h = FROG_SIZE_Y; frog.ci = FROG_COLOR; frog.dir = SCHOOL;
-	// car.x = 0; car.y = 110; car.w = CAR_SIZE_X; car.h = CAR_SIZE_Y; car.ci = CAR_COLOR; car.dir = RIGHT;
 	Lcd_Draw_Box(player.x, player.y, player.w, player.h, color[player.ci]);
 	Lcd_Draw_Box(car1.x, car1.y, car1.w, car1.h, color[car1.ci]);
 }
-
-// static void Draw_Object(QUERY_DRAW * obj)
-// {
-// 	Lcd_Draw_Box(obj->x, obj->y, obj->w, obj->h, color[obj->ci]);
-// }
 
 extern volatile int TIM4_expired;
 extern volatile int USART1_rx_ready;
