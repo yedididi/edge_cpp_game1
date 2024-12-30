@@ -6,85 +6,18 @@
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 
-// class frog
-// {
-// 	public:
-// 		int x,y;
-// 		int w,h;
-// 		int ci;
-// 		int dir;
-
-// 		frog(int x, int y, int w, int h, int ci, int dir)
-// 		{
-// 			this->x = x;
-// 			this->y = y;
-// 			this->w = w;
-// 			this->h = h;
-// 			this->ci = ci;
-// 			this->dir = dir;
-// 		}
-
-// 		void Draw_Object()
-// 		{
-// 			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
-// 		}
-
-// 		void Frog_Move(int k)
-// 		{
-// 			if (k == 0 && this->y > Y_MIN)
-// 				this->y -= FROG_STEP;
-// 			else if (k == 1 && (this->y + this->h < Y_MAX))
-// 				this->y += FROG_STEP;
-// 			else if (k == 2 && (this->x > X_MIN))
-// 				this->x -= FROG_STEP;
-// 			else if (k == 3 && (this->x + this->w < X_MAX))	
-// 				this->x += FROG_STEP;
-// 		}
-// };
-
-// class car
-// {
-// 	public:
-// 		int x,y;
-// 		int w,h;
-// 		int ci;
-// 		int dir;
-
-// 		car(int x, int y, int w, int h, int ci, int dir)
-// 		{
-// 			this->x = x;
-// 			this->y = y;
-// 			this->w = w;
-// 			this->h = h;
-// 			this->ci = ci;
-// 			this->dir = dir;
-// 		}
-
-// 		void Draw_Object()
-// 		{
-// 			Lcd_Draw_Box(this->x, this->y, this->w, this->h, color[this->ci]);
-// 		}
-
-// 		void Car_Move(void)
-// 		{
-// 			this->x += CAR_STEP * this->dir;
-// 			if((this->x + this->w >= X_MAX) || (this->x <= X_MIN)) 
-// 				this->dir = -this->dir;
-// 		}
-// };
-
 static int Check_Collision(frog player, car car1)
 {
 	int col = 0;
 
-	if((car1.x >= player.x) && ((player.x + FROG_STEP) >= car1.x)) 
+	if((car1.getX() >= player.getX()) && ((player.getX() + FROG_STEP) >= car1.getX())) 
 		col |= 1<<0;
-	else if((car1.x < player.x) && ((car1.x + CAR_STEP) >= player.x)) 
+	else if((car1.getX() < player.getX()) && ((car1.getX() + CAR_STEP) >= player.getX())) 
 		col |= 1<<0;
 	
-	if((car1.y >= player.y) && ((player.y + FROG_STEP) >= car1.y)) 
+	if((car1.getY() >= player.getY()) && ((player.getY() + FROG_STEP) >= car1.getY())) 
 		col |= 1<<1;
-	else if((car1.y < player.y) && ((car1.y + CAR_STEP) >= player.y)) 
+	else if((car1.getY() < player.getY()) && ((car1.getY() + CAR_STEP) >= player.getY())) 
 		col |= 1<<1;
 
 	if(col == 3)
@@ -93,15 +26,15 @@ static int Check_Collision(frog player, car car1)
 		return GAME_OVER;
 	}
 
-	if((player.dir == SCHOOL) && (player.y == Y_MIN)) 
+	if((player.getDir() == SCHOOL) && (player.getY() == Y_MIN)) 
 	{
-		Uart_Printf("SCHOOL\n");		
-		player.dir = HOME;
+		Uart_Printf("SCHOOL\n");
+		player.setDir(HOME);
 	}
 
-	if((player.dir == HOME) && (player.y == LCDH - player.h))
+	if((player.getDir() == HOME) && (player.getY() == LCDH - player.getH()))
 	{
-		player.dir = SCHOOL;
+		player.setDir(SCHOOL);
 		score++;
 		Uart_Printf("HOME, %d\n", score);
 	}
@@ -113,8 +46,8 @@ static void Game_Init(frog player, car car1)
 {
 	score = 0;
 	Lcd_Clr_Screen();
-	Lcd_Draw_Box(player.x, player.y, player.w, player.h, color[player.ci]);
-	Lcd_Draw_Box(car1.x, car1.y, car1.w, car1.h, color[car1.ci]);
+	Lcd_Draw_Box(player.getX(), player.getY(), player.getW(), player.getH(), color[player.getCi()]);
+	Lcd_Draw_Box(car1.getX(), car1.getY(), car1.getW(), car1.getH(), color[car1.getCi()]);
 }
 
 extern volatile int TIM4_expired;
@@ -162,26 +95,26 @@ extern "C" void Main()
 			if(Jog_key_in) 
 			{
 				Uart_Printf("KEY\n");
-				player.ci = BACK_COLOR;
+				player.setCi(BACK_COLOR);
 				player.Draw_Object();
 
 				player.Frog_Move(Jog_key);
 				game_over = Check_Collision(player, car1);
 
-				player.ci = FROG_COLOR;
+				player.setCi(FROG_COLOR);
 				player.Draw_Object();
 				Jog_key_in = 0;				
 			}
 
 			if(TIM4_expired) 
 			{
-				car1.ci = BACK_COLOR;
+				car1.setCi(BACK_COLOR);
 				car1.Draw_Object();
 
 				car1.Car_Move();
 				game_over = Check_Collision(player, car1);
 
-				car1.ci = CAR_COLOR;
+				car1.setCi(CAR_COLOR);
 				car1.Draw_Object();
 				TIM4_expired = 0;
 			}
