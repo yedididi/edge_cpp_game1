@@ -135,12 +135,27 @@ extern "C" void Main()
 				game_over = Check_Collision(&player, car_array);
 
 			}
-			
 
 			if(game_over)
 			{
 				TIM4_Repeat_Interrupt_Enable(0, 0);
 				Uart_Printf("Game Over, Please press any key to continue.\n");
+				Jog_Wait_Key_Pressed();
+				Jog_Wait_Key_Released();
+				Uart_Printf("Game Start\n");
+				break;
+			}
+
+			if (score == 5)
+			{
+				for (int i = 0; i < score + 1; i++)
+				{
+					car_array[i].setCi(BACK_COLOR);
+					car_array[i].Draw_Object();
+				}
+				player.setCi(BACK_COLOR);
+				player.Draw_Object();
+				Uart_Printf("Game Clear, Please press any key to continue.\n");
 				Jog_Wait_Key_Pressed();
 				Jog_Wait_Key_Released();
 				Uart_Printf("Game Start\n");
