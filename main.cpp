@@ -2,9 +2,14 @@
 #include "frog.h"
 #include "car.h"
 #include "defined.h"
+#include "map.h"
+#include "graphics.h"
+
+#define foodNum 3
 
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
+int foodCount = foodNum;
 
 static int Check_Collision(frog *player, car cars[5])
 {
@@ -55,6 +60,15 @@ static void Game_Init(frog player, car car1)
 	Lcd_Clr_Screen();
 	Lcd_Draw_Box(player.getX(), player.getY(), player.getW(), player.getH(), color[player.getCi()]);
 	Lcd_Draw_Box(car1.getX(), car1.getY(), car1.getW(), car1.getH(), color[car1.getCi()]);
+
+	for (int i = 0; i < 24; i++)
+	{
+		for (int j = 0; j < 32; j++)
+		{
+			if (map[score][i][j] == '1')
+				Lcd_Draw_Box(j * MAP_UNIT, i * MAP_UNIT, FROG_SIZE_X, FROG_SIZE_Y, color[WALL_COLOR]);
+		}
+	}
 }
 
 extern volatile int TIM4_expired;
@@ -90,13 +104,13 @@ extern "C" void Main()
 
 	for(;;)
 	{
-		frog player(150, 220, FROG_SIZE_X, FROG_SIZE_Y, FROG_COLOR, SCHOOL);
+		frog player(150, 230, FROG_SIZE_X, FROG_SIZE_Y, FROG_COLOR, SCHOOL);
 		car car_array[5] = {
-			car(0, 110, CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
-			car(0, 100, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(0, 120, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(0, 130, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(0, 140, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
+			car(10, 110, CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
+			car(10, 100, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(10, 120, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(10, 130, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(10, 140, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
 		}; //car 위치 조정 필요!!
 		Game_Init(player, car_array[0]);
 		TIM4_Repeat_Interrupt_Enable(1, TIMER_PERIOD*10);
@@ -111,7 +125,7 @@ extern "C" void Main()
 				player.setCi(BACK_COLOR);
 				player.Draw_Object();
 
-				player.Frog_Move(Jog_key);
+				player.Frog_Move(Jog_key, map[score]);
 				game_over = Check_Collision(&player, car_array);
 
 				player.setCi(FROG_COLOR);
@@ -126,14 +140,13 @@ extern "C" void Main()
 					car_array[i].setCi(BACK_COLOR);
 					car_array[i].Draw_Object();
 
-					car_array[i].Car_Move();
+					car_array[i].Car_Move(map[score]);
 
 					car_array[i].setCi(CAR_COLOR);
 					car_array[i].Draw_Object();
 					TIM4_expired = 0;
 				}				
 				game_over = Check_Collision(&player, car_array);
-
 			}
 
 			if(game_over)
@@ -146,7 +159,7 @@ extern "C" void Main()
 				break;
 			}
 
-			if (score == 5)
+			if (score == MAP_LEVEL_COUNT)
 			{
 				for (int i = 0; i < score + 1; i++)
 				{

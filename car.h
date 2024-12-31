@@ -7,7 +7,7 @@ class car : public object
 {
     public:
         car(int x, int y, int w, int h, int ci, int dir);
-        void Car_Move(void);
+        void Car_Move(char map[24][32]);
 };
 
 #endif
