@@ -10,6 +10,15 @@
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 int foodCount = foodNum;
+int mapNum = 1;
+int enemyX[2][5] = {
+	{10, 10, 10, 10, 10},
+	{10, 10, 10, 10, 10}
+};
+int enemyY[2][5] = {
+	{110, 90, 120, 140, 150},
+	{100, 220, 120, 140, 150}
+};
 
 static int Check_Collision(frog *player, car cars[5])
 {
@@ -68,7 +77,7 @@ static void Game_Init(frog player, car car1)
 	{
 		for (int j = 0; j < 32; j++)
 		{
-			if (map[score][i][j] == '1')
+			if (map[mapNum][i][j] == '1')
 				Lcd_Draw_Box(j * MAP_UNIT, i * MAP_UNIT, FROG_SIZE_X, FROG_SIZE_Y, color[WALL_COLOR]);
 		}
 	}
@@ -109,11 +118,11 @@ extern "C" void Main()
 	{
 		frog player(150, 230, FROG_SIZE_X, FROG_SIZE_Y, FROG_COLOR, SCHOOL);
 		car car_array[5] = {
-			car(10, 110, CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
-			car(10, 100, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(10, 120, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(10, 130, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
-			car(10, 140, CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
+			car(enemyX[mapNum][0], enemyY[mapNum][0], CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
+			car(enemyX[mapNum][1], enemyY[mapNum][1], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(enemyX[mapNum][2], enemyY[mapNum][2], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(enemyX[mapNum][3], enemyY[mapNum][3], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
+			car(enemyX[mapNum][4], enemyY[mapNum][4], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
 		}; //car 위치 조정 필요!!
 		Game_Init(player, car_array[0]);
 		TIM4_Repeat_Interrupt_Enable(1, TIMER_PERIOD*10);
@@ -128,7 +137,7 @@ extern "C" void Main()
 				player.setCi(BACK_COLOR);
 				player.Draw_Object();
 
-				player.Frog_Move(Jog_key, map[score]);
+				player.Frog_Move(Jog_key, map[mapNum]);
 				game_over = Check_Collision(&player, car_array);
 
 				player.setCi(FROG_COLOR);
@@ -143,7 +152,7 @@ extern "C" void Main()
 					car_array[i].setCi(BACK_COLOR);
 					car_array[i].Draw_Object();
 
-					car_array[i].Car_Move(map[score]);
+					car_array[i].Car_Move(map[mapNum]);
 
 					car_array[i].setCi(CAR_COLOR);
 					car_array[i].Draw_Object();
@@ -162,7 +171,7 @@ extern "C" void Main()
 				break;
 			}
 
-			if (score == MAP_LEVEL_COUNT)
+			if (score == TOTAL_LEVEL)
 			{
 				for (int i = 0; i < score + 1; i++)
 				{
