@@ -18,18 +18,21 @@ static int Check_Collision(frog *player, car cars[5])
 	for (int i = 0; i < score + 1; i++)
 	{
 		col = 0;
-		if ((cars[i].getX() >= player->getX()) && ((player->getX() + FROG_STEP) >= cars[i].getX())) 
+		if ((cars[i].getX() >= player->getX()) && ((player->getX() + FROG_SIZE_X) > cars[i].getX())) 
 			col |= 1<<0; //col = col | 1
-		else if ((cars[i].getX() < player->getX()) && ((cars[i].getX() + CAR_STEP) >= player->getX())) 
+		else if ((cars[i].getX() < player->getX()) && ((cars[i].getX() + CAR_SIZE_X) > player->getX())) 
 			col |= 1<<0; //col = col | 1
 		
-		if ((cars[i].getY() >= player->getY()) && ((player->getY() + FROG_STEP) >= cars[i].getY())) 
+		if ((cars[i].getY() >= player->getY()) && ((player->getY() + FROG_SIZE_Y) > cars[i].getY())) 
 			col |= 1<<1; //col = col | 10
-		else if ((cars[i].getY() < player->getY()) && ((cars[i].getY() + CAR_STEP) >= player->getY())) 
+		else if ((cars[i].getY() < player->getY()) && ((cars[i].getY() + CAR_SIZE_Y) > player->getY())) 
 			col |= 1<<1; //col = col | 10
 		
 		if (col == 3)
+		{
+			Uart_Printf("p.x:%d, p.y:%d\nc.x:%d, c.y%d\n", player->getX(), player->getY(), cars[i].getX(), cars[i].getY());
 			break;
+		}
 	}
 
 	if(col == 3)
