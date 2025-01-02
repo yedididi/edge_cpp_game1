@@ -4,6 +4,7 @@
 #include "defined.h"
 #include "map.h"
 #include "graphics.h"
+#include "cherry.h"
 
 #define FOODNUM 3
 
@@ -12,12 +13,18 @@ static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 int foodCount = FOODNUM;
 int mapNum = 0;
 int enemyX[2][5] = {
-	{10, 10, 10, 10, 10},
+	{10, 110, 70, 150, 10},
 	{10, 110, 160, 110, 300}
 };
 int enemyY[2][5] = {
-	{110, 90, 120, 140, 150},
+	{110, 160, 220, 70, 20},
 	{100, 60, 160, 220, 30}
+};
+int cherryX[2][3] = {
+
+};
+int cherryY[2][3] = {
+
 };
 
 extern "C" void __cxa_pure_virtual() { while (1); }
@@ -49,10 +56,7 @@ static int Check_Collision(frog *player, car cars[5])
 			col |= 1<<1; //col = col | 10
 		
 		if (col == 3)
-		{
-			Uart_Printf("p.x:%d, p.y:%d\nc.x:%d, c.y%d\n", player->getX(), player->getY(), cars[i].getX(), cars[i].getY());
 			break;
-		}
 	}
 
 	if(col == 3)
@@ -67,13 +71,29 @@ static int Check_Collision(frog *player, car cars[5])
 		player->setDir(HOME);
 	}
 
-	if((player->getDir() == HOME) && (player->getY() == LCDH - player->getH()))
+	if((player->getDir() == HOME) && (player->getY() == LCDH - player->getH()) && !foodCount)
 	{
 		player->setDir(SCHOOL);
 		score++;
 		Uart_Printf("HOME, %d\n", score);
 	}
 
+	return 0;
+}
+
+static int Check_Collision_Cherry(frog *player, cherry cherry_)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		Uart_Printf("cherry count:%d\n", i);
+
+		if (player->getX() == (cherry_.x[mapNum][i] * 10) && player->getY() == (cherry_.y[mapNum][i] * 10))
+		{
+			Uart_Printf("CHERRY GOT EATEN\n");
+			foodCount--;
+			return (i + 1);
+		}
+	}
 	return 0;
 }
 
@@ -93,7 +113,7 @@ void Lcd_Draw_Cherry(int x, int y)
     };
 
 
-	Uart1_Printf("cherry.x:%d, cherry.y:%d\n", x, y);
+	// Uart1_Printf("cherry.x:%d, cherry.y:%d\n", x, y);
 	for (int i = 0; i < FROG_SIZE_Y; i++) 
     {
         for (int j = 0; j < FROG_SIZE_X; j++) 
@@ -120,8 +140,6 @@ static void Game_Init(frog player, car car1)
 		{
 			if (map[mapNum][i][j] == '1')
 				Lcd_Draw_Box(j * MAP_UNIT, i * MAP_UNIT, FROG_SIZE_X, FROG_SIZE_Y, color[WALL_COLOR]);
-			else if (map[mapNum][i][j] == '2')
-				Lcd_Draw_Cherry(j * MAP_UNIT, i * MAP_UNIT);
 		}
 	}
 }
@@ -166,12 +184,15 @@ extern "C" void Main()
 			car(enemyX[mapNum][2], enemyY[mapNum][2], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
 			car(enemyX[mapNum][3], enemyY[mapNum][3], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),
 			car(enemyX[mapNum][4], enemyY[mapNum][4], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT)
-		}; //car 위치 조정 필요!!
+		};
 		Game_Init(player, car_array[0]);
 		TIM4_Repeat_Interrupt_Enable(1, TIMER_PERIOD*10);
 
 		for(;;)
 		{
+			cherry cherry_;
+			for (int i = 0; i < 3; i++)
+				cherry_.drawCherry(i, mapNum);
 			int game_over = 0;
 			
 			if(Jog_key_in)
@@ -182,6 +203,8 @@ extern "C" void Main()
 
 				player.Frog_Move(Jog_key, map[mapNum]);
 				game_over = Check_Collision(&player, car_array);
+				if (foodCount)
+					cherry_.eraseCherry(Check_Collision_Cherry(&player, cherry_), mapNum);
 
 				player.setCi(FROG_COLOR);
 				player.Draw_Object();
@@ -200,7 +223,7 @@ extern "C" void Main()
 					car_array[i].setCi(CAR_COLOR);
 					car_array[i].Draw_Object();
 					TIM4_expired = 0;
-				}				
+				}
 				game_over = Check_Collision(&player, car_array);
 			}
 
