@@ -1,6 +1,6 @@
 #include "object.h"
 
-static unsigned short color_o[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
+// static unsigned short color_o[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
 
 object::object()
 {
@@ -77,7 +77,7 @@ void object::setDir(int dir)
     this->dir = dir;
 }
 
-void object::Draw_Object()
-{
-    Lcd_Draw_Box(this->x, this->y, this->w, this->h, color_o[this->ci]);
-}
+// void object::Draw_Object()
+// {
+//     Lcd_Draw_Box(this->x, this->y, this->w, this->h, color_o[this->ci]);
+// }

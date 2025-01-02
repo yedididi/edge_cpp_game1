@@ -28,7 +28,7 @@ class object
 		void setCi(int ci);
 		void setDir(int dir);
 		
-		void Draw_Object();
+		virtual void Draw_Object() = 0;
 };
 
 #endif

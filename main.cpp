@@ -5,20 +5,31 @@
 #include "map.h"
 #include "graphics.h"
 
-#define foodNum 3
+#define FOODNUM 3
 
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
-int foodCount = foodNum;
-int mapNum = 1;
+int foodCount = FOODNUM;
+int mapNum = 0;
 int enemyX[2][5] = {
 	{10, 10, 10, 10, 10},
-	{10, 10, 10, 10, 10}
+	{10, 110, 160, 110, 300}
 };
 int enemyY[2][5] = {
 	{110, 90, 120, 140, 150},
-	{100, 220, 120, 140, 150}
+	{100, 60, 160, 220, 30}
 };
+
+extern "C" void __cxa_pure_virtual() { while (1); }
+
+extern "C" void __cxa_deleted_virtual() { while (1); }
+
+namespace __gnu_cxx {
+void _verbose_terminate_handler() {
+  Uart1_Printf("Unexpected error\n");
+  while (1);
+}
+}  
 
 static int Check_Collision(frog *player, car cars[5])
 {
@@ -66,12 +77,42 @@ static int Check_Collision(frog *player, car cars[5])
 	return 0;
 }
 
+void Lcd_Draw_Cherry(int x, int y)
+{
+	int cherry[10][10] = {
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 3, 0, 0, 0, 0, 0},
+        {0, 0, 0, 3, 0, 3, 0, 0, 0, 0},
+        {0, 0, 3, 0, 0, 0, 3, 0, 0, 0},
+        {0, 0, 3, 0, 0, 0, 0, 3, 0, 0},
+        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
+        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
+        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
+        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    };
+
+
+	Uart1_Printf("cherry.x:%d, cherry.y:%d\n", x, y);
+	for (int i = 0; i < FROG_SIZE_Y; i++) 
+    {
+        for (int j = 0; j < FROG_SIZE_X; j++) 
+        {
+            if (cherry[i][j] == 2)
+                Lcd_Put_Pixel(x + j, y + i, RED);
+            else if (cherry[i][j] == 3)
+                Lcd_Put_Pixel(x + j, y + i, GREEN);
+        }
+    }
+}
+
 static void Game_Init(frog player, car car1)
 {
 	score = 0;
 	Lcd_Clr_Screen();
-	Lcd_Draw_Box(player.getX(), player.getY(), player.getW(), player.getH(), color[player.getCi()]);
-	Lcd_Draw_Box(car1.getX(), car1.getY(), car1.getW(), car1.getH(), color[car1.getCi()]);
+
+	player.Draw_Object();
+	car1.Draw_Object();
 
 	for (int i = 0; i < 24; i++)
 	{
@@ -79,6 +120,8 @@ static void Game_Init(frog player, car car1)
 		{
 			if (map[mapNum][i][j] == '1')
 				Lcd_Draw_Box(j * MAP_UNIT, i * MAP_UNIT, FROG_SIZE_X, FROG_SIZE_Y, color[WALL_COLOR]);
+			else if (map[mapNum][i][j] == '2')
+				Lcd_Draw_Cherry(j * MAP_UNIT, i * MAP_UNIT);
 		}
 	}
 }
@@ -116,7 +159,7 @@ extern "C" void Main()
 
 	for(;;)
 	{
-		frog player(150, 230, FROG_SIZE_X, FROG_SIZE_Y, FROG_COLOR, SCHOOL);
+		frog player(150, 230, FROG_SIZE_X, FROG_SIZE_Y, PACMAN_COLOR, SCHOOL);
 		car car_array[5] = {
 			car(enemyX[mapNum][0], enemyY[mapNum][0], CAR_SIZE_X, CAR_SIZE_Y, CAR_COLOR, RIGHT),
 			car(enemyX[mapNum][1], enemyY[mapNum][1], CAR_SIZE_X, CAR_SIZE_Y, BACK_COLOR, RIGHT),

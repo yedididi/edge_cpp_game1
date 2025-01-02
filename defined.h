@@ -29,6 +29,7 @@
 #define CAR_COLOR		(0)
 #define FROG_COLOR		(1)
 #define WALL_COLOR      (4)
+#define PACMAN_COLOR    (1)
 
 #define GAME_OVER		(1)
 
