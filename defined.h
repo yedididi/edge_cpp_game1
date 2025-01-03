@@ -4,6 +4,7 @@
 #define MAP_COUNT       (2)
 #define MAP_UNIT        (10)
 #define TOTAL_LEVEL     (5)
+#define FOODNUM         (3)
 
 #define LCDW			(320)
 #define LCDH			(240)

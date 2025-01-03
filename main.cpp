@@ -5,8 +5,8 @@
 #include "map.h"
 #include "graphics.h"
 #include "cherry.h"
-
-#define FOODNUM 3
+#include "collision.h"
+#include "arrow.h"
 
 static int score;
 static unsigned short color[] = {RED, YELLOW, GREEN, BLUE, WHITE, BLACK};
@@ -25,156 +25,14 @@ extern "C" void __cxa_pure_virtual() { while (1); }
 
 extern "C" void __cxa_deleted_virtual() { while (1); }
 
-namespace __gnu_cxx {
-void _verbose_terminate_handler() {
-  Uart1_Printf("Unexpected error\n");
-  while (1);
-}
+namespace __gnu_cxx 
+{
+	void _verbose_terminate_handler() 
+	{
+		Uart1_Printf("Unexpected error\n");
+		while (1) ;
+	}
 }  
-
-static int Check_Collision(frog *player, car cars[5], cherry &cherry_)
-{
-	int col = 0;
-
-	for (int i = 0; i < score + 1; i++)
-	{
-		col = 0;
-		if ((cars[i].getX() >= player->getX()) && ((player->getX() + FROG_SIZE_X) > cars[i].getX())) 
-			col |= 1<<0; //col = col | 1
-		else if ((cars[i].getX() < player->getX()) && ((cars[i].getX() + CAR_SIZE_X) > player->getX())) 
-			col |= 1<<0; //col = col | 1
-		
-		if ((cars[i].getY() >= player->getY()) && ((player->getY() + FROG_SIZE_Y) > cars[i].getY())) 
-			col |= 1<<1; //col = col | 10
-		else if ((cars[i].getY() < player->getY()) && ((cars[i].getY() + CAR_SIZE_Y) > player->getY())) 
-			col |= 1<<1; //col = col | 10
-		
-		if (col == 3)
-			break;
-	}
-
-	if(col == 3)
-	{
-		Uart_Printf("SCORE = %d\n", score);	
-		return GAME_OVER;
-	}
-
-	if((player->getDir() == SCHOOL) && (player->getY() == Y_MIN)) 
-	{
-		Uart_Printf("SCHOOL\n");
-		player->setDir(HOME);
-	}
-
-	if((player->getDir() == HOME) && (player->getY() == LCDH - player->getH()) && !foodCount)
-	{
-		player->setDir(SCHOOL);
-		score++;
-		for (int i = 0; i < 3; i++)
-		{
-			cherry_.drawCherry(i, mapNum);
-			cherry_.cherryExistance[i] = true;
-		}
-		foodCount = FOODNUM;
-		Uart1_Printf("foodCount is:%d\n", foodCount);
-		Uart_Printf("HOME, %d\n", score);
-
-	}
-
-	return 0;
-}
-
-
-static int Check_Collision(frog *player, car cars[5])
-{
-	int col = 0;
-
-	for (int i = 0; i < score + 1; i++)
-	{
-		col = 0;
-		if ((cars[i].getX() >= player->getX()) && ((player->getX() + FROG_SIZE_X) > cars[i].getX())) 
-			col |= 1<<0; //col = col | 1
-		else if ((cars[i].getX() < player->getX()) && ((cars[i].getX() + CAR_SIZE_X) > player->getX())) 
-			col |= 1<<0; //col = col | 1
-		
-		if ((cars[i].getY() >= player->getY()) && ((player->getY() + FROG_SIZE_Y) > cars[i].getY())) 
-			col |= 1<<1; //col = col | 10
-		else if ((cars[i].getY() < player->getY()) && ((cars[i].getY() + CAR_SIZE_Y) > player->getY())) 
-			col |= 1<<1; //col = col | 10
-		
-		if (col == 3)
-			break;
-	}
-
-	if(col == 3)
-	{
-		Uart_Printf("SCORE = %d\n", score);	
-		return GAME_OVER;
-	}
-
-	if((player->getDir() == SCHOOL) && (player->getY() == Y_MIN)) 
-	{
-		Uart_Printf("SCHOOL\n");
-		player->setDir(HOME);
-	}
-
-	if((player->getDir() == HOME) && (player->getY() == LCDH - player->getH()) && !foodCount)
-	{
-		player->setDir(SCHOOL);
-		score++;
-		Uart_Printf("HOME, %d\n", score);
-	}
-
-	return 0;
-}
-
-static int Check_Collision_Cherry(frog *player, cherry &cherry_)
-{
-	for (int i = 0; i < 3; i++)
-	{
-		if ((player->getX() == (cherry_.x[mapNum][i] * 10)) && (player->getY() == (cherry_.y[mapNum][i] * 10)))
-		{
-			if (cherry_.cherryExistance[i] == true)
-			{
-				Uart_Printf("CHERRY GOT EATEN\n");
-				foodCount--;
-				Uart1_Printf("foodCount is:%d\n", foodCount);
-				cherry_.cherryExistance[i] = false;
-				return (i + 1);
-			}
-		}
-	}
-	return 0;
-}
-
-void Lcd_Draw_Cherry(int x, int y)
-{
-	int cherry[10][10] = {
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 3, 0, 0, 0, 0, 0},
-        {0, 0, 0, 3, 0, 3, 0, 0, 0, 0},
-        {0, 0, 3, 0, 0, 0, 3, 0, 0, 0},
-        {0, 0, 3, 0, 0, 0, 0, 3, 0, 0},
-        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
-        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
-        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
-        {0, 2, 2, 2, 0, 0, 2, 2, 2, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-    };
-
-
-	// Uart1_Printf("cherry.x:%d, cherry.y:%d\n", x, y);
-	for (int i = 0; i < FROG_SIZE_Y; i++) 
-    {
-        for (int j = 0; j < FROG_SIZE_X; j++) 
-        {
-            if (cherry[i][j] == 2)
-                Lcd_Put_Pixel(x + j, y + i, RED);
-            else if (cherry[i][j] == 3)
-                Lcd_Put_Pixel(x + j, y + i, GREEN);
-        }
-    }
-}
-
 
 static void Game_Init(frog player, car car1, cherry cherry_)
 {
@@ -203,101 +61,32 @@ extern volatile int USART1_rx_data;
 extern volatile int Jog_key_in;
 extern volatile int Jog_key;
 
-void Lcd_Draw_Arrow(int x, int y)
-{
-   int arrow[36][36] = {
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 4
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 8
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 16 
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 20
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 24
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 28
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 32
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 36
-        };
-
-   for (int i = 0; i < 36; i++)
-   {
-      for (int j = 0; j < 36; j++)
-      {
-         if (arrow[i][j] == 0)
-            Lcd_Put_Pixel(x + j, y + i, BLACK);
-         else if (arrow[i][j] == 1)
-            Lcd_Put_Pixel(x + j, y + i, WHITE);
-      }
-   }
-}
-
 static void Game_First_Screen(void)
 {
-   for (;;)
-   {
-      Lcd_Printf(85, 50, WHITE, BLACK, 2, 2, "PACK BOY", 100);
-      Lcd_Printf(64, 140, WHITE, BLACK, 2, 2, "MAP1", 100);
-      Lcd_Printf(212, 140, WHITE, BLACK, 2, 2, "MAP2", 100);
-      if (Jog_key == 0 || Jog_key == 1)
-         ;
-      if (Jog_key == 2)
-      {
-         for (;;)
-         {
-            Lcd_Printf(85, 50, WHITE, BLACK, 2, 2, "PACK BOY", 100);
-            Lcd_Printf(212, 140, WHITE, BLACK, 2, 2, "MAP2", 100);
-            Lcd_Printf(64, 140, BLACK, WHITE, 2, 2, "MAP1", 100);
-            Lcd_Draw_Arrow(21, 139);
-            Lcd_Draw_Box(168, 139, 20, 36, color[5]);
-            if (Jog_key == 3 || Jog_key == 4)
-               break;
+	Lcd_Printf(85, 50, WHITE, BLACK, 2, 2, "PACK BOY", 100);
+	Lcd_Printf(64, 140, WHITE, BLACK, 2, 2, "MAP1", 100);
+	Lcd_Printf(212, 140, WHITE, BLACK, 2, 2, "MAP2", 100);
+	for (;;)
+	{
+		if (Jog_key == 2)
+		{
+			Lcd_Printf(64, 140, BLACK, WHITE, 2, 2, "MAP1", 100);
+			Lcd_Printf(212, 140, WHITE, BLACK, 2, 2, "MAP2", 100);
+			Lcd_Draw_Arrow(21, 139);
+			Lcd_Draw_Box(168, 139, 36, 36, color[5]);
 			mapNum = 0;
-         }
-      }
-
-      if (Jog_key == 3)
-      {
-         for (;;)
-         {
-            Lcd_Printf(85, 50, WHITE, BLACK, 2, 2, "PACK BOY", 100);
-            Lcd_Printf(64, 140, WHITE, BLACK, 2, 2, "MAP1", 100);
-            Lcd_Printf(212, 140, BLACK, WHITE, 2, 2, "MAP2", 100);
-            Lcd_Draw_Arrow(168, 139);
-            Lcd_Draw_Box(21, 139, 20, 36, color[5]);
-            if (Jog_key == 2 || Jog_key == 4)
-               break;
+		}
+		if (Jog_key == 3)
+		{
+			Lcd_Printf(64, 140, WHITE, BLACK, 2, 2, "MAP1", 100);
+			Lcd_Printf(212, 140, BLACK, WHITE, 2, 2, "MAP2", 100);
+			Lcd_Draw_Arrow(168, 139);
+			Lcd_Draw_Box(21, 139, 36, 36, color[5]);
 			mapNum = 1;
-         }
-      }
-
-      if (Jog_key == 4)
-         break;
-   }
+		}
+		if (Jog_key == 4)
+			break;
+   	}
 }
 
 extern "C" void abort(void)
@@ -349,18 +138,15 @@ extern "C" void Main()
 			
 			if(Jog_key_in)
 			{
-				Uart_Printf("KEY, %d\n", Jog_key);
+				Uart_Printf("KEY\n");
 				player.setCi(BACK_COLOR);
 				player.Draw_Object();
 
 				player.Frog_Move(Jog_key, map[mapNum]);
-				game_over = Check_Collision(&player, car_array, cherry_);
-
-				for (int i = 0; i < 3; i++)
-					Uart_Printf("cherry existance:%d\n", cherry_.cherryExistance[i]);
+				game_over = Check_Collision(&player, car_array, cherry_, score, foodCount, mapNum);
 
 				if (foodCount)
-					cherry_.eraseCherry(Check_Collision_Cherry(&player, cherry_), mapNum);
+					cherry_.eraseCherry(Check_Collision_Cherry(&player, cherry_, foodCount, mapNum), mapNum);
 
 				player.setCi(FROG_COLOR);
 				player.Draw_Object();
@@ -380,7 +166,7 @@ extern "C" void Main()
 					car_array[i].Draw_Object();
 					TIM4_expired = 0;
 				}
-				game_over = Check_Collision(&player, car_array);
+				game_over = Check_Collision(&player, car_array, score, foodCount, mapNum);
 			}
 
 			if(game_over)
