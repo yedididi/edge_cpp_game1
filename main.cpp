@@ -138,6 +138,7 @@ extern "C" void Main()
 			
 			if(Jog_key_in)
 			{
+				//객체로 다 바꾸기
 				Uart_Printf("KEY\n");
 				player.setCi(BACK_COLOR);
 				player.Draw_Object();
